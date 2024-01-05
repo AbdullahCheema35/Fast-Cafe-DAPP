@@ -19,7 +19,14 @@ contract FastCoin is IERC20 {
     mapping(address => uint256) private _balances;
     mapping(address => mapping(address => uint256)) private _allowances;
 
-    constructor(string memory _name, string memory _symbol, uint8 _decimals) {
+    IOrderProcessingContract orderProcessingContract;
+
+    constructor(
+        string memory _name,
+        string memory _symbol,
+        uint8 _decimals,
+        address _orderProcessingContractAddress
+    ) {
         owner = payable(msg.sender);
         name = _name;
         symbol = _symbol;
@@ -30,6 +37,10 @@ contract FastCoin is IERC20 {
 
         _allowances[msg.sender][address(this)] = _totalSupply / 2;
         emit Approval(msg.sender, address(this), _totalSupply / 2);
+
+        orderProcessingContract = IOrderProcessingContract(
+            _orderProcessingContractAddress
+        );
     }
 
     function totalSupply() external view override returns (uint256) {
@@ -80,6 +91,17 @@ contract FastCoin is IERC20 {
             msg.sender,
             _allowances[_sender][msg.sender] - amount
         );
+        return true;
+    }
+
+    function processPayment(uint256 _orderId) external override returns (bool) {
+        uint256 totalPayment = orderProcessingContract.validateOrder(
+            msg.sender,
+            _orderId
+        );
+        require(totalPayment > 0, "Invalid order");
+        _transfer(msg.sender, owner, totalPayment);
+        orderProcessingContract.completeOrder(msg.sender, _orderId);
         return true;
     }
 

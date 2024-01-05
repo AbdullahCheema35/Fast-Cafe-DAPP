@@ -25,6 +25,8 @@ interface IERC20 {
         uint256 amount
     ) external returns (bool);
 
+    function processPayment(uint256 orderId) external returns (bool);
+
     event Transfer(address indexed from, address indexed to, uint256 value);
     event Approval(
         address indexed owner,
@@ -126,10 +128,22 @@ interface IOrderProcessingContract {
         uint256[] memory quantities
     ) external returns (uint256, uint256);
 
+    function getOrderDetails(
+        uint256 orderId
+    )
+        external
+        view
+        returns (
+            address user,
+            uint256[] memory itemIds,
+            uint256[] memory quantities,
+            uint256 totalAmount
+        );
+
     function validateOrder(
         address user,
         uint256 _orderId
-    ) external view returns (bool);
+    ) external view returns (uint256);
 
     function completeOrder(address user, uint256 _orderId) external;
 }

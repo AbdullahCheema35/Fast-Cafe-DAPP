@@ -99,6 +99,33 @@ contract OrderProcessing {
         );
     }
 
+    function getOrderDetails(
+        uint256 orderId
+    )
+        external
+        view
+        returns (
+            address user,
+            uint256[] memory itemIds,
+            uint256[] memory quantities,
+            uint256 totalAmount
+        )
+    {
+        Order[] memory ordersByUser = userOrders[msg.sender];
+        // Iterate through the orders placed by the user to find the order ID.
+        for (uint256 i = 0; i < ordersByUser.length; i++) {
+            if (ordersByUser[i].orderId == orderId) {
+                return (
+                    ordersByUser[i].user,
+                    ordersByUser[i].items,
+                    ordersByUser[i].quantities,
+                    ordersByUser[i].totalAmount
+                );
+            }
+        }
+        require(false, "Order not found.");
+    }
+
     // Function to place an order. This may involve checking item availability and applying promotions.
     // Returns the order ID and total amount payable.
     function placeOrder(
@@ -143,18 +170,18 @@ contract OrderProcessing {
     }
 
     // Function to validate an order before processing payment.
-    // Called by the Payment Contract.
+    // Called by the Payment Contract (Returns the total payable amount).
     function validateOrder(
         address user,
         uint256 _orderId
-    ) public view returns (bool) {
+    ) public view returns (uint256) {
         Order[] memory ordersByUser = userOrders[user];
         // Iterate through the orders placed by the user to find the order ID.
         for (uint256 i = 0; i < ordersByUser.length; i++) {
             if (ordersByUser[i].orderId == _orderId) {
                 // Check if the order is completed.
                 if (ordersByUser[i].completed) {
-                    return false;
+                    return 0;
                 }
                 // Check if the order is still valid (Enough items left in stock)
                 for (uint256 j = 0; j < ordersByUser[i].items.length; j++) {
@@ -163,13 +190,13 @@ contract OrderProcessing {
                             ordersByUser[i].items[j]
                         ) < ordersByUser[i].quantities[j]
                     ) {
-                        return false;
+                        return 0;
                     }
                 }
-                return true;
+                return ordersByUser[i].totalAmount;
             }
         }
-        return false;
+        return 0;
     }
 
     // Function to mark an order as completed.
