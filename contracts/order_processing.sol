@@ -1,0 +1,201 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+import "./interfaces.sol";
+
+contract OrderProcessing {
+    struct Order {
+        uint256 orderId;
+        address user;
+        uint256[] items;
+        uint256[] quantities;
+        uint256 totalAmount;
+        bool completed;
+    }
+
+    mapping(address => Order[]) public userOrders;
+    uint256 public orderCount;
+
+    address owner;
+
+    // Interfaces for other contracts to interact with.
+    IMenuManagementContract menuManagementContract;
+    IERC20 paymentContract;
+    IPromotionsDiscountsContract promotionsDiscountsContract;
+    IRewardsLoyaltyContract rewardsLoyaltyContract;
+
+    // Addresses for other contracts for integration purposes.
+    address menuManagementContractAddress;
+    address paymentContractAddress;
+    address promotionsDiscountsContractAddress;
+    address rewardsLoyaltyContractAddress;
+
+    event OrderPlaced(
+        uint256 indexed orderId,
+        address indexed user,
+        uint256[] items,
+        uint256[] quantities,
+        uint256 totalAmount
+    );
+
+    // Modifier to ensure the function is called by the integrated contracts only.
+    modifier onlyIntegratedContracts() {
+        require(
+            msg.sender == menuManagementContractAddress ||
+                msg.sender == paymentContractAddress ||
+                msg.sender == promotionsDiscountsContractAddress ||
+                msg.sender == rewardsLoyaltyContractAddress,
+            "Only integrated contracts can call this function."
+        );
+        _;
+    }
+
+    // Constructor updated to accept addresses of integrated contracts.
+    constructor() // address _menuManagementContractAddress,
+    // address _paymentContractAddress,
+    // address _promotionsDiscountsContractAddress,
+    // address _rewardsLoyaltyContractAddress
+    {
+        // menuManagementContractAddress = _menuManagementContractAddress;
+        // paymentContractAddress = _paymentContractAddress;
+        // promotionsDiscountsContractAddress = _promotionsDiscountsContractAddress;
+        // rewardsLoyaltyContractAddress = _rewardsLoyaltyContractAddress;
+        // // Initialize contract interfaces with the provided addresses.
+        // menuManagementContract = IMenuManagementContract(
+        //     _menuManagementContractAddress
+        // );
+        // paymentContract = IERC20(_paymentContractAddress);
+        // promotionsDiscountsContract = IPromotionsDiscountsContract(
+        //     _promotionsDiscountsContractAddress
+        // );
+        // rewardsLoyaltyContract = IRewardsLoyaltyContract(
+        //     _rewardsLoyaltyContractAddress
+        // );
+        owner = msg.sender;
+    }
+
+    // Function to update the addresses of integrated contracts, if needed.
+    function setIntegratedContracts(
+        address _menuManagementContractAddress,
+        address _paymentContractAddress,
+        address _promotionsDiscountsContractAddress,
+        address _rewardsLoyaltyContractAddress
+    ) public {
+        // Implement appropriate access control...
+        menuManagementContractAddress = _menuManagementContractAddress;
+        paymentContractAddress = _paymentContractAddress;
+        promotionsDiscountsContractAddress = _promotionsDiscountsContractAddress;
+        rewardsLoyaltyContractAddress = _rewardsLoyaltyContractAddress;
+        // Update contract interfaces with the new addresses.
+        menuManagementContract = IMenuManagementContract(
+            _menuManagementContractAddress
+        );
+        paymentContract = IERC20(_paymentContractAddress);
+        promotionsDiscountsContract = IPromotionsDiscountsContract(
+            _promotionsDiscountsContractAddress
+        );
+        rewardsLoyaltyContract = IRewardsLoyaltyContract(
+            _rewardsLoyaltyContractAddress
+        );
+    }
+
+    // Function to place an order. This may involve checking item availability and applying promotions.
+    // Returns the order ID and total amount payable.
+    function placeOrder(
+        uint256[] memory itemIds,
+        uint256[] memory quantities
+    ) public returns (uint256, uint256) {
+        uint256 totalAmount = 0;
+        for (uint256 i = 0; i < itemIds.length; i++) {
+            // Check if the item is available in the menu.
+            require(
+                menuManagementContract.checkItemAvailability(itemIds[i]) >=
+                    quantities[i],
+                "Item not available in the required quantity."
+            );
+            // Calculate the total amount, considering any active promotions.
+            uint256 itemPrice = menuManagementContract.getItemPrice(itemIds[i]);
+            uint256 discountedPrice = promotionsDiscountsContract
+                .calculateDiscountedPrice(itemIds[i], itemPrice);
+            totalAmount += discountedPrice * quantities[i];
+        }
+
+        // Add the new order to the mapping of orders against user addresses.
+        orderCount++;
+        Order memory newOrder = Order(
+            orderCount,
+            msg.sender,
+            itemIds,
+            quantities,
+            totalAmount,
+            false
+        );
+        userOrders[msg.sender].push(newOrder);
+        emit OrderPlaced(
+            orderCount,
+            msg.sender,
+            itemIds,
+            quantities,
+            totalAmount
+        );
+
+        return (orderCount, totalAmount);
+    }
+
+    // Function to validate an order before processing payment.
+    // Called by the Payment Contract.
+    function validateOrder(
+        address user,
+        uint256 _orderId
+    ) public view returns (bool) {
+        Order[] memory ordersByUser = userOrders[user];
+        // Iterate through the orders placed by the user to find the order ID.
+        for (uint256 i = 0; i < ordersByUser.length; i++) {
+            if (ordersByUser[i].orderId == _orderId) {
+                // Check if the order is completed.
+                if (ordersByUser[i].completed) {
+                    return false;
+                }
+                // Check if the order is still valid (Enough items left in stock)
+                for (uint256 j = 0; j < ordersByUser[i].items.length; j++) {
+                    if (
+                        menuManagementContract.checkItemAvailability(
+                            ordersByUser[i].items[j]
+                        ) < ordersByUser[i].quantities[j]
+                    ) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // Function to mark an order as completed.
+    function completeOrder(
+        address user,
+        uint256 _orderId
+    ) public onlyIntegratedContracts {
+        Order[] storage ordersByUser = userOrders[user];
+        // Iterate through the orders placed by the user to find the order ID.
+        for (uint256 i = 0; i < ordersByUser.length; i++) {
+            if (ordersByUser[i].orderId == _orderId) {
+                ordersByUser[i].completed = true;
+                // Reduce the item quantities from the menu.
+                for (uint256 j = 0; j < ordersByUser[i].items.length; j++) {
+                    menuManagementContract.reduceItemAvailability(
+                        ordersByUser[i].items[j],
+                        ordersByUser[i].quantities[j]
+                    );
+                }
+                rewardsLoyaltyContract.successfulPurchaseMade(
+                    user,
+                    ordersByUser[i].totalAmount
+                );
+                return;
+            }
+        }
+        require(false, "Order not found.");
+    }
+}
