@@ -17,7 +17,7 @@ module.exports = async function (deployer) {
     await deployer.deploy(RewardLoyalty);
     const rewardLoyaltyInstance = await RewardLoyalty.deployed();
 
-    await deployer.deploy(FastCoin, "FastCoin", "FC", 18);
+    await deployer.deploy(FastCoin, "FastCoin", "FC", 18, orderProcessingInstance.address);
     const FastCoinInstance = await FastCoin.deployed();
 
     // Call setIntegratedContracts function after deployment
