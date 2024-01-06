@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "./interfaces.sol";
+import "./payment_contract.sol";
 
 contract RewardLoyalty {
     // ERC20 token address for loyalty points (e.g., FastCoin).
@@ -15,10 +15,10 @@ contract RewardLoyalty {
     event LoyaltyPointsAdded(address indexed user, uint256 points);
 
     // Interfaces for other contracts to interact with.
-    IERC20 paymentContract;
+    FastCoin paymentContract;
 
     // Addresses for other contracts for integration purposes.
-    address paymentContractAddress;
+    address payable paymentContractAddress;
 
     event LoyaltyPointsRedeemed(
         address indexed user,
@@ -38,11 +38,11 @@ contract RewardLoyalty {
 
     // Function to set the addresses for integrated contracts.
     function setIntegratedContracts(
-        address _paymentContractAddress
+        address payable _paymentContractAddress
     ) public onlyOwner {
         paymentContractAddress = _paymentContractAddress;
         // Initialize contract interfaces with the provided addresses.
-        paymentContract = IERC20(paymentContractAddress);
+        paymentContract = FastCoin(paymentContractAddress);
     }
 
     // Function to reward loyalty points based on a successful purchase made.

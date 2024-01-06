@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "./interfaces.sol";
+import "./order_processing.sol";
 
 // Simple ERC20 Token Contract
 contract FastCoin is IERC20 {
@@ -19,7 +20,7 @@ contract FastCoin is IERC20 {
     mapping(address => uint256) private _balances;
     mapping(address => mapping(address => uint256)) private _allowances;
 
-    IOrderProcessingContract orderProcessingContract;
+    OrderProcessing orderProcessingContract;
 
     constructor(
         string memory _name,
@@ -38,7 +39,7 @@ contract FastCoin is IERC20 {
         _allowances[msg.sender][address(this)] = _totalSupply / 2;
         emit Approval(msg.sender, address(this), _totalSupply / 2);
 
-        orderProcessingContract = IOrderProcessingContract(
+        orderProcessingContract = OrderProcessing(
             _orderProcessingContractAddress
         );
     }
@@ -94,7 +95,7 @@ contract FastCoin is IERC20 {
         return true;
     }
 
-    function processPayment(uint256 _orderId) external override returns (bool) {
+    function processPayment(uint256 _orderId) external returns (bool) {
         uint256 totalPayment = orderProcessingContract.validateOrder(
             msg.sender,
             _orderId

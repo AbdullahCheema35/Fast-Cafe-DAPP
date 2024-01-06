@@ -1,17 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "./interfaces.sol";
-
 contract PromotionDiscount {
-    // // Interfaces for other contracts to interact with.
-    // IMenuManagementContract menuManagementContract;
-    // IOrderProcessingContract orderProcessingContract;
-
-    // // Addresses for other contracts for integration purposes.
-    // address menuManagementContractAddress;
-    // address orderProcessingContractAddress;
-
     struct Promotion {
         uint256 itemId; // ID of the menu item the promotion is for.
         string description;
@@ -28,30 +18,10 @@ contract PromotionDiscount {
         owner = msg.sender;
     }
 
-    // // Modifier to ensure the function is called by the integrated contracts only.
-    // modifier onlyIntegratedContracts() {
-    //     require(
-    //         msg.sender == menuManagementContractAddress ||
-    //             msg.sender == orderProcessingContractAddress,
-    //         "Only integrated contracts can call this function."
-    //     );
-    //     _;
-    // }
-
     modifier onlyOwner() {
         require(msg.sender == owner, "Only the owner can call this function.");
         _;
     }
-
-    // // Function to set the addresses for integrated contracts.
-    // function setIntegratedContracts(
-    //     address _menuManagementContractAddress,
-    //     address _orderProcessingContractAddress
-    // ) public onlyOwner {
-    //     menuManagementContractAddress = _menuManagementContractAddress;
-    //     orderProcessingContractAddress = _orderProcessingContractAddress;
-    //     // Initialize contract interfaces with the provided addresses.
-    // }
 
     // Function to add a new promotion for a specific item.
     function addPromotion(

@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "./interfaces.sol";
+import "./menu_management.sol";
+import "./promotion_discount.sol";
+import "./reward_loyalty.sol";
+import "./payment_contract.sol";
 
 contract OrderProcessing {
     struct Order {
@@ -19,14 +22,14 @@ contract OrderProcessing {
     address owner;
 
     // Interfaces for other contracts to interact with.
-    IMenuManagementContract menuManagementContract;
-    IERC20 paymentContract;
-    IPromotionsDiscountsContract promotionsDiscountsContract;
-    IRewardsLoyaltyContract rewardsLoyaltyContract;
+    MenuManagement menuManagementContract;
+    FastCoin paymentContract;
+    PromotionDiscount promotionsDiscountsContract;
+    RewardLoyalty rewardsLoyaltyContract;
 
     // Addresses for other contracts for integration purposes.
     address menuManagementContractAddress;
-    address paymentContractAddress;
+    address payable paymentContractAddress;
     address promotionsDiscountsContractAddress;
     address rewardsLoyaltyContractAddress;
 
@@ -52,7 +55,7 @@ contract OrderProcessing {
 
     // Constructor updated to accept addresses of integrated contracts.
     constructor() // address _menuManagementContractAddress,
-    // address _paymentContractAddress,
+    // address payable _paymentContractAddress,
     // address _promotionsDiscountsContractAddress,
     // address _rewardsLoyaltyContractAddress
     {
@@ -61,14 +64,14 @@ contract OrderProcessing {
         // promotionsDiscountsContractAddress = _promotionsDiscountsContractAddress;
         // rewardsLoyaltyContractAddress = _rewardsLoyaltyContractAddress;
         // // Initialize contract interfaces with the provided addresses.
-        // menuManagementContract = IMenuManagementContract(
+        // menuManagementContract = MenuManagement(
         //     _menuManagementContractAddress
         // );
-        // paymentContract = IERC20(_paymentContractAddress);
-        // promotionsDiscountsContract = IPromotionsDiscountsContract(
+        // paymentContract = FastCoin(_paymentContractAddress);
+        // promotionsDiscountsContract = PromotionDiscount(
         //     _promotionsDiscountsContractAddress
         // );
-        // rewardsLoyaltyContract = IRewardsLoyaltyContract(
+        // rewardsLoyaltyContract = RewardLoyalty(
         //     _rewardsLoyaltyContractAddress
         // );
         owner = msg.sender;
@@ -77,7 +80,7 @@ contract OrderProcessing {
     // Function to update the addresses of integrated contracts, if needed.
     function setIntegratedContracts(
         address _menuManagementContractAddress,
-        address _paymentContractAddress,
+        address payable _paymentContractAddress,
         address _promotionsDiscountsContractAddress,
         address _rewardsLoyaltyContractAddress
     ) public {
@@ -87,16 +90,12 @@ contract OrderProcessing {
         promotionsDiscountsContractAddress = _promotionsDiscountsContractAddress;
         rewardsLoyaltyContractAddress = _rewardsLoyaltyContractAddress;
         // Update contract interfaces with the new addresses.
-        menuManagementContract = IMenuManagementContract(
-            _menuManagementContractAddress
-        );
-        paymentContract = IERC20(_paymentContractAddress);
-        promotionsDiscountsContract = IPromotionsDiscountsContract(
+        menuManagementContract = MenuManagement(_menuManagementContractAddress);
+        paymentContract = FastCoin(_paymentContractAddress);
+        promotionsDiscountsContract = PromotionDiscount(
             _promotionsDiscountsContractAddress
         );
-        rewardsLoyaltyContract = IRewardsLoyaltyContract(
-            _rewardsLoyaltyContractAddress
-        );
+        rewardsLoyaltyContract = RewardLoyalty(_rewardsLoyaltyContractAddress);
     }
 
     function getOrderDetails(

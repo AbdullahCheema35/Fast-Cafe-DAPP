@@ -5,14 +5,14 @@ const RewardLoyalty = artifacts.require("RewardLoyalty");
 const FastCoin = artifacts.require("FastCoin");
 
 module.exports = async function (deployer) {
+    await deployer.deploy(PromotionDiscount);
+    const promotionDiscountInstance = await PromotionDiscount.deployed();
+
     await deployer.deploy(MenuManagement);
     const menuManagementInstance = await MenuManagement.deployed();
 
     await deployer.deploy(OrderProcessing);
     const orderProcessingInstance = await OrderProcessing.deployed();
-
-    await deployer.deploy(PromotionDiscount);
-    const promotionDiscountInstance = await PromotionDiscount.deployed();
 
     await deployer.deploy(RewardLoyalty);
     const rewardLoyaltyInstance = await RewardLoyalty.deployed();
@@ -22,20 +22,20 @@ module.exports = async function (deployer) {
 
     // Call setIntegratedContracts function after deployment
     await Promise.all([
-        menuManagementInstance.setIntegratedContracts(
-            orderProcessingInstance.address,
-            promotionDiscountInstance.address,
-            rewardLoyaltyInstance.address,
-            FastCoinInstance.address
-        ),
+        // menuManagementInstance.setIntegratedContracts(
+        //     orderProcessingInstance.address,
+        //     promotionDiscountInstance.address,
+        //     rewardLoyaltyInstance.address,
+        //     FastCoinInstance.address
+        // ),
         orderProcessingInstance.setIntegratedContracts(
             menuManagementInstance.address,
+            FastCoinInstance.address,
             promotionDiscountInstance.address,
-            rewardLoyaltyInstance.address,
-            FastCoinInstance.address
+            rewardLoyaltyInstance.address
         ),
-        rewardLoyaltyInstance.setIntegratedContracts(
-            FastCoinInstance.address
-        ),
+        // rewardLoyaltyInstance.setIntegratedContracts(
+        //     FastCoinInstance.address
+        // ),
     ]);
 };

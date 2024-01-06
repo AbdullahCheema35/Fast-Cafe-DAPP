@@ -15,15 +15,9 @@ contract MenuManagement {
     uint256 public itemCount;
     address public admin;
 
-    // Interfaces for other contracts to interact with.
-    IOrderProcessingContract orderProcessingContract;
-    IERC20 paymentContract;
-    IPromotionsDiscountsContract promotionsDiscountsContract;
-    IRewardsLoyaltyContract rewardsLoyaltyContract;
-
     // Addresses for other contracts for integration purposes.
     address orderProcessingContractAddress;
-    address paymentContractAddress;
+    address payable paymentContractAddress;
     address promotionsDiscountsContractAddress;
     address rewardsLoyaltyContractAddress;
 
@@ -46,7 +40,7 @@ contract MenuManagement {
 
     // Constructor updated to accept addresses of integrated contracts.
     constructor() // address _orderProcessingContractAddress,
-    // address _paymentContractAddress,
+    // address payable _paymentContractAddress,
     // address _promotionsDiscountsContractAddress,
     // address _rewardsLoyaltyContractAddress
     {
@@ -58,29 +52,29 @@ contract MenuManagement {
         // Initialize contract interfaces with the provided addresses.
     }
 
-    // Function to update the addresses of integrated contracts, if needed.
-    function setIntegratedContracts(
-        address _orderProcessingContractAddress,
-        address _paymentContractAddress,
-        address _promotionsDiscountsContractAddress,
-        address _rewardsLoyaltyContractAddress
-    ) public onlyadmin {
-        orderProcessingContractAddress = _orderProcessingContractAddress;
-        paymentContractAddress = _paymentContractAddress;
-        promotionsDiscountsContractAddress = _promotionsDiscountsContractAddress;
-        rewardsLoyaltyContractAddress = _rewardsLoyaltyContractAddress;
-        // Update contract interfaces with the new addresses.
-        orderProcessingContract = IOrderProcessingContract(
-            _orderProcessingContractAddress
-        );
-        paymentContract = IERC20(_paymentContractAddress);
-        promotionsDiscountsContract = IPromotionsDiscountsContract(
-            _promotionsDiscountsContractAddress
-        );
-        rewardsLoyaltyContract = IRewardsLoyaltyContract(
-            _rewardsLoyaltyContractAddress
-        );
-    }
+    // // Function to update the addresses of integrated contracts, if needed.
+    // function setIntegratedContracts(
+    //     address _orderProcessingContractAddress,
+    //     address payable _paymentContractAddress,
+    //     address _promotionsDiscountsContractAddress,
+    //     address _rewardsLoyaltyContractAddress
+    // ) public onlyadmin {
+    //     orderProcessingContractAddress = _orderProcessingContractAddress;
+    //     paymentContractAddress = _paymentContractAddress;
+    //     promotionsDiscountsContractAddress = _promotionsDiscountsContractAddress;
+    //     rewardsLoyaltyContractAddress = _rewardsLoyaltyContractAddress;
+    //     // Update contract interfaces with the new addresses.
+    //     orderProcessingContract = IOrderProcessingContract(
+    //         _orderProcessingContractAddress
+    //     );
+    //     paymentContract = IERC20(_paymentContractAddress);
+    //     promotionsDiscountsContract = IPromotionsDiscountsContract(
+    //         _promotionsDiscountsContractAddress
+    //     );
+    //     rewardsLoyaltyContract = IRewardsLoyaltyContract(
+    //         _rewardsLoyaltyContractAddress
+    //     );
+    // }
 
     // Function to add a new item to the menu.
     function addItem(
