@@ -5,20 +5,16 @@ import "./payment_contract.sol";
 
 contract RewardLoyalty {
     // ERC20 token address for loyalty points (e.g., FastCoin).
-    address public fastCoinAddress;
     mapping(address => uint256) public loyaltyPoints;
 
-    uint256 public conversionRate = 100; // 100 points = 1 FastCoin, adjustable by owner.
-    address public owner;
+    uint256 public conversionRate = 100; // 100 points = 1 FastCoin, adjustable by admin.
+    address public admin;
 
     uint256 public purchaseFactor = 10; // Factor to determine loyalty points based on purchase amount.
     event LoyaltyPointsAdded(address indexed user, uint256 points);
 
-    // Interfaces for other contracts to interact with.
+    // Payment Contract
     FastCoin paymentContract;
-
-    // Addresses for other contracts for integration purposes.
-    address payable paymentContractAddress;
 
     event LoyaltyPointsRedeemed(
         address indexed user,
@@ -28,21 +24,24 @@ contract RewardLoyalty {
     event ConversionRateChanged(uint256 newRate);
 
     constructor() {
-        owner = msg.sender;
+        admin = msg.sender;
     }
 
-    modifier onlyOwner() {
-        require(msg.sender == owner, "Only the owner can call this function.");
+    modifier onlyAdmin() {
+        require(msg.sender == admin, "Only the admin can call this function.");
         _;
     }
 
-    // Function to set the addresses for integrated contracts.
+    // Function to update the addresses of integrated contracts, if needed.
     function setIntegratedContracts(
-        address payable _paymentContractAddress
-    ) public onlyOwner {
-        paymentContractAddress = _paymentContractAddress;
-        // Initialize contract interfaces with the provided addresses.
-        paymentContract = FastCoin(paymentContractAddress);
+        address _menuManagementContractAddress,
+        address payable _paymentContractAddress,
+        address _promotionsDiscountsContractAddress,
+        address _rewardsLoyaltyContractAddress,
+        address _orderProcessingContractAddress
+    ) public onlyAdmin {
+        // Update contract interfaces with the new addresses.
+        paymentContract = FastCoin(_paymentContractAddress);
     }
 
     // Function to reward loyalty points based on a successful purchase made.
@@ -67,20 +66,26 @@ contract RewardLoyalty {
     }
 
     // Function to redeem loyalty points for FastCoin tokens.
-    function redeemPointsForTokens(address user, uint256 points) public {
-        require(loyaltyPoints[user] >= points, "Not enough loyalty points.");
-        uint256 tokensToTransfer = points / conversionRate;
-        uint256 pointsLeft = points % conversionRate;
-        loyaltyPoints[user] -= (points - pointsLeft);
+    function redeemPointsForTokens(address user) public {
+        uint256 currentLoyaltyPoints = loyaltyPoints[user];
         require(
-            paymentContract.transferFrom(owner, msg.sender, tokensToTransfer),
-            "Token transfer failed."
+            currentLoyaltyPoints >= conversionRate,
+            "Not enough loyalty points to redeem."
         );
-        emit LoyaltyPointsRedeemed(user, points, tokensToTransfer);
+        uint256 tokensToTransfer = currentLoyaltyPoints / conversionRate;
+        uint256 pointsLeft = currentLoyaltyPoints % conversionRate;
+        loyaltyPoints[user] -= (currentLoyaltyPoints - pointsLeft);
+        // Call payment contract to transfer tokens to the user
+        paymentContract.redeemLoyaltyPoints(user, tokensToTransfer);
+        emit LoyaltyPointsRedeemed(
+            user,
+            currentLoyaltyPoints - pointsLeft,
+            tokensToTransfer
+        );
     }
 
     // Function to change the conversion rate for loyalty points.
-    function changeConversionRate(uint256 newRate) public onlyOwner {
+    function changeConversionRate(uint256 newRate) public onlyAdmin {
         require(newRate > 0, "Conversion rate must be greater than zero.");
         conversionRate = newRate;
         emit ConversionRateChanged(newRate);

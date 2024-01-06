@@ -12,16 +12,25 @@ contract PromotionDiscount {
     // Mapping to store promotions for each item
     mapping(uint256 => Promotion) public itemPromotions;
 
-    address public owner;
+    address public admin;
 
     constructor() {
-        owner = msg.sender;
+        admin = msg.sender;
     }
 
-    modifier onlyOwner() {
-        require(msg.sender == owner, "Only the owner can call this function.");
+    modifier onlyAdmin() {
+        require(msg.sender == admin, "Only the admin can call this function.");
         _;
     }
+
+    // Function to update the addresses of integrated contracts, if needed.
+    function setIntegratedContracts(
+        address _menuManagementContractAddress,
+        address payable _paymentContractAddress,
+        address _promotionsDiscountsContractAddress,
+        address _rewardsLoyaltyContractAddress,
+        address _orderProcessingContractAddress
+    ) public onlyAdmin {}
 
     // Function to add a new promotion for a specific item.
     function addPromotion(
@@ -29,7 +38,7 @@ contract PromotionDiscount {
         string memory _description,
         uint256 _discountPercentage,
         uint256 _validTill
-    ) public onlyOwner {
+    ) public onlyAdmin {
         require(
             _validTill > block.timestamp,
             "Promotion end time must be in the future."
@@ -53,7 +62,7 @@ contract PromotionDiscount {
         string memory _description,
         uint256 _discountPercentage,
         uint256 _validTill
-    ) public onlyOwner {
+    ) public onlyAdmin {
         require(
             _validTill > block.timestamp,
             "Promotion end time must be in the future."
@@ -76,7 +85,7 @@ contract PromotionDiscount {
     }
 
     // Function to remove a promotion for a specific item.
-    function removePromotion(uint256 _itemId) public onlyOwner {
+    function removePromotion(uint256 _itemId) public onlyAdmin {
         delete itemPromotions[_itemId];
         // Emit event or notify other contracts as needed.
     }

@@ -53,27 +53,13 @@ contract OrderProcessing {
         _;
     }
 
+    modifier onlyAdmin() {
+        require(msg.sender == owner, "Only the admin can perform this action");
+        _;
+    }
+
     // Constructor updated to accept addresses of integrated contracts.
-    constructor() // address _menuManagementContractAddress,
-    // address payable _paymentContractAddress,
-    // address _promotionsDiscountsContractAddress,
-    // address _rewardsLoyaltyContractAddress
-    {
-        // menuManagementContractAddress = _menuManagementContractAddress;
-        // paymentContractAddress = _paymentContractAddress;
-        // promotionsDiscountsContractAddress = _promotionsDiscountsContractAddress;
-        // rewardsLoyaltyContractAddress = _rewardsLoyaltyContractAddress;
-        // // Initialize contract interfaces with the provided addresses.
-        // menuManagementContract = MenuManagement(
-        //     _menuManagementContractAddress
-        // );
-        // paymentContract = FastCoin(_paymentContractAddress);
-        // promotionsDiscountsContract = PromotionDiscount(
-        //     _promotionsDiscountsContractAddress
-        // );
-        // rewardsLoyaltyContract = RewardLoyalty(
-        //     _rewardsLoyaltyContractAddress
-        // );
+    constructor() {
         owner = msg.sender;
     }
 
@@ -82,8 +68,9 @@ contract OrderProcessing {
         address _menuManagementContractAddress,
         address payable _paymentContractAddress,
         address _promotionsDiscountsContractAddress,
-        address _rewardsLoyaltyContractAddress
-    ) public {
+        address _rewardsLoyaltyContractAddress,
+        address _orderProcessingContractAddress
+    ) public onlyAdmin {
         // Implement appropriate access control...
         menuManagementContractAddress = _menuManagementContractAddress;
         paymentContractAddress = _paymentContractAddress;
@@ -173,7 +160,7 @@ contract OrderProcessing {
     function validateOrder(
         address user,
         uint256 _orderId
-    ) public view returns (uint256) {
+    ) public view onlyIntegratedContracts returns (uint256) {
         Order[] memory ordersByUser = userOrders[user];
         // Iterate through the orders placed by the user to find the order ID.
         for (uint256 i = 0; i < ordersByUser.length; i++) {

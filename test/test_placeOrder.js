@@ -18,13 +18,6 @@ contract('OrderProcessing', (accounts) => {
 
         const FastCoinInstance = await FastCoin.deployed();
 
-        await orderProcessingInstance.setIntegratedContracts(
-            menuManagementInstance.address,
-            FastCoinInstance.address,
-            promotionDiscountInstance.address,
-            rewardLoyaltyInstance.address
-        );
-
         // Add items to the menu
         await menuManagementInstance.addItem('Item 1', 100, 50);
         await menuManagementInstance.addItem('Item 2', 150, 70);

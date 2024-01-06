@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-import "./interfaces.sol";
-
 contract MenuManagement {
     struct MenuItem {
         uint256 itemId;
@@ -17,74 +15,55 @@ contract MenuManagement {
 
     // Addresses for other contracts for integration purposes.
     address orderProcessingContractAddress;
-    address payable paymentContractAddress;
-    address promotionsDiscountsContractAddress;
-    address rewardsLoyaltyContractAddress;
+
+    event ItemAdded(
+        uint256 indexed itemId,
+        string name,
+        uint256 price,
+        uint256 availability
+    );
 
     // Modifier to ensure the function is called by the integrated contracts only.
     modifier onlyIntegratedContracts() {
         require(
-            msg.sender == orderProcessingContractAddress ||
-                msg.sender == paymentContractAddress ||
-                msg.sender == promotionsDiscountsContractAddress ||
-                msg.sender == rewardsLoyaltyContractAddress,
+            msg.sender == orderProcessingContractAddress,
             "Only integrated contracts can call this function."
         );
         _;
     }
 
-    modifier onlyadmin() {
+    modifier onlyAdmin() {
         require(msg.sender == admin, "Only the admin can perform this action");
         _;
     }
 
     // Constructor updated to accept addresses of integrated contracts.
-    constructor() // address _orderProcessingContractAddress,
-    // address payable _paymentContractAddress,
-    // address _promotionsDiscountsContractAddress,
-    // address _rewardsLoyaltyContractAddress
-    {
+    constructor() {
         admin = msg.sender;
-        // orderProcessingContractAddress = _orderProcessingContractAddress;
-        // paymentContractAddress = _paymentContractAddress;
-        // promotionsDiscountsContractAddress = _promotionsDiscountsContractAddress;
-        // rewardsLoyaltyContractAddress = _rewardsLoyaltyContractAddress;
-        // Initialize contract interfaces with the provided addresses.
     }
 
-    // // Function to update the addresses of integrated contracts, if needed.
-    // function setIntegratedContracts(
-    //     address _orderProcessingContractAddress,
-    //     address payable _paymentContractAddress,
-    //     address _promotionsDiscountsContractAddress,
-    //     address _rewardsLoyaltyContractAddress
-    // ) public onlyadmin {
-    //     orderProcessingContractAddress = _orderProcessingContractAddress;
-    //     paymentContractAddress = _paymentContractAddress;
-    //     promotionsDiscountsContractAddress = _promotionsDiscountsContractAddress;
-    //     rewardsLoyaltyContractAddress = _rewardsLoyaltyContractAddress;
-    //     // Update contract interfaces with the new addresses.
-    //     orderProcessingContract = IOrderProcessingContract(
-    //         _orderProcessingContractAddress
-    //     );
-    //     paymentContract = IERC20(_paymentContractAddress);
-    //     promotionsDiscountsContract = IPromotionsDiscountsContract(
-    //         _promotionsDiscountsContractAddress
-    //     );
-    //     rewardsLoyaltyContract = IRewardsLoyaltyContract(
-    //         _rewardsLoyaltyContractAddress
-    //     );
-    // }
+    // Function to update the addresses of integrated contracts, if needed.
+    function setIntegratedContracts(
+        address _menuManagementContractAddress,
+        address payable _paymentContractAddress,
+        address _promotionsDiscountsContractAddress,
+        address _rewardsLoyaltyContractAddress,
+        address _orderProcessingContractAddress
+    ) public onlyAdmin {
+        // Implement appropriate access control...
+        orderProcessingContractAddress = _orderProcessingContractAddress;
+    }
 
     // Function to add a new item to the menu.
     function addItem(
         string memory name,
         uint256 price,
         uint256 availability
-    ) public onlyadmin {
+    ) public onlyAdmin {
         itemCount++;
         menuItems[itemCount] = MenuItem(itemCount, name, price, availability);
         // Emit event or notify other contracts as needed.
+        emit ItemAdded(itemCount, name, price, availability);
     }
 
     // Function to update an existing menu item.
@@ -93,14 +72,14 @@ contract MenuManagement {
         string memory name,
         uint256 price,
         uint256 availability
-    ) public onlyadmin {
+    ) public onlyAdmin {
         require(itemId <= itemCount, "Item does not exist.");
         menuItems[itemId] = MenuItem(itemId, name, price, availability);
         // Emit event or notify other contracts as needed.
     }
 
     // Function to remove an item from the menu.
-    function removeItem(uint256 itemId) public onlyadmin {
+    function removeItem(uint256 itemId) public onlyAdmin {
         require(itemId <= itemCount, "Item does not exist.");
         delete menuItems[itemId];
         // Emit event or notify other contracts as needed.
@@ -141,18 +120,4 @@ contract MenuManagement {
         menuItems[itemId].availability -= unitsConsumed;
         // Emit event or notify other contracts as needed.
     }
-
-    // // Function to apply promotions (called by Promotions and Discounts Contract).
-    // function applyPromotion(
-    //     uint256 itemId,
-    //     uint256 discountPercentage
-    // ) public onlyIntegratedContracts {
-    //     require(itemId <= itemCount, "Item does not exist.");
-    //     require(discountPercentage <= 100, "Invalid discount percentage.");
-    //     uint256 originalPrice = menuItems[itemId].price;
-    //     uint256 discountedPrice = originalPrice -
-    //         ((originalPrice * discountPercentage) / 100);
-    //     menuItems[itemId].price = discountedPrice;
-    //     // Emit event or notify other contracts as needed.
-    // }
 }

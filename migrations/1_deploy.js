@@ -17,25 +17,45 @@ module.exports = async function (deployer) {
     await deployer.deploy(RewardLoyalty);
     const rewardLoyaltyInstance = await RewardLoyalty.deployed();
 
-    await deployer.deploy(FastCoin, "FastCoin", "FC", 18, orderProcessingInstance.address);
+    await deployer.deploy(FastCoin, "FastCoin", "FC", 18);
     const FastCoinInstance = await FastCoin.deployed();
 
     // Call setIntegratedContracts function after deployment
     await Promise.all([
-        // menuManagementInstance.setIntegratedContracts(
-        //     orderProcessingInstance.address,
-        //     promotionDiscountInstance.address,
-        //     rewardLoyaltyInstance.address,
-        //     FastCoinInstance.address
-        // ),
+        menuManagementInstance.setIntegratedContracts(
+            menuManagementInstance.address,
+            FastCoinInstance.address,
+            promotionDiscountInstance.address,
+            rewardLoyaltyInstance.address,
+            orderProcessingInstance.address
+        ),
         orderProcessingInstance.setIntegratedContracts(
             menuManagementInstance.address,
             FastCoinInstance.address,
             promotionDiscountInstance.address,
-            rewardLoyaltyInstance.address
+            rewardLoyaltyInstance.address,
+            orderProcessingInstance.address
         ),
-        // rewardLoyaltyInstance.setIntegratedContracts(
-        //     FastCoinInstance.address
-        // ),
+        rewardLoyaltyInstance.setIntegratedContracts(
+            menuManagementInstance.address,
+            FastCoinInstance.address,
+            promotionDiscountInstance.address,
+            rewardLoyaltyInstance.address,
+            orderProcessingInstance.address
+        ),
+        promotionDiscountInstance.setIntegratedContracts(
+            menuManagementInstance.address,
+            FastCoinInstance.address,
+            promotionDiscountInstance.address,
+            rewardLoyaltyInstance.address,
+            orderProcessingInstance.address
+        ),
+        FastCoinInstance.setIntegratedContracts(
+            menuManagementInstance.address,
+            FastCoinInstance.address,
+            promotionDiscountInstance.address,
+            rewardLoyaltyInstance.address,
+            orderProcessingInstance.address
+        )
     ]);
 };
