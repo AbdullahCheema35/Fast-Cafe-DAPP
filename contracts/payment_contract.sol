@@ -138,7 +138,7 @@ contract FastCoin is IERC20 {
         );
     }
 
-    function processPayment(uint256 _orderId) external returns (bool) {
+    function processPayment(uint256 _orderId) external {
         uint256 totalPayment = orderProcessingContract.validateOrder(
             msg.sender,
             _orderId
@@ -146,7 +146,6 @@ contract FastCoin is IERC20 {
         require(totalPayment > 0, "Invalid order");
         _transfer(msg.sender, admin, totalPayment);
         orderProcessingContract.completeOrder(msg.sender, _orderId);
-        return true;
     }
 
     function _transfer(

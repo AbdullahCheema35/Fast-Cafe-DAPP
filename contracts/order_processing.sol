@@ -94,7 +94,8 @@ contract OrderProcessing {
             address user,
             uint256[] memory itemIds,
             uint256[] memory quantities,
-            uint256 totalAmount
+            uint256 totalAmount,
+            bool completed
         )
     {
         Order[] memory ordersByUser = userOrders[msg.sender];
@@ -105,7 +106,8 @@ contract OrderProcessing {
                     ordersByUser[i].user,
                     ordersByUser[i].items,
                     ordersByUser[i].quantities,
-                    ordersByUser[i].totalAmount
+                    ordersByUser[i].totalAmount,
+                    ordersByUser[i].completed
                 );
             }
         }

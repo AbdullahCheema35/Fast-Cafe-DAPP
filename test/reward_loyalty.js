@@ -49,8 +49,8 @@ contract("PaymentContract", (accounts) => {
     it("User should be able to successfully process payment for the order", async () => {
         const paymentContractInstance = await FastCoin.deployed();
 
-        const itemIds = [1, 2]; // Replace with the actual item ID
-        const quantities = [2, 1]; // Replace with the actual quantity
+        const itemIds = [2]; // Replace with the actual item ID
+        const quantities = [10]; // Replace with the actual quantity
 
         // Create an order
         const tx = await orderProcessingInstance.placeOrder(itemIds, quantities, { from: user });
@@ -66,7 +66,7 @@ contract("PaymentContract", (accounts) => {
 
         // Perform assertions or log the extracted values
         assert.equal(orderId, 1, "Unexpected orderId emitted");
-        assert.equal(totalAmount, 200, "Unexpected total amount");
+        assert.equal(totalAmount, 1000, "Unexpected total amount");
 
         // Call the processPayment function
         await fastCoinInstance.processPayment(orderId, { from: user });
@@ -74,15 +74,29 @@ contract("PaymentContract", (accounts) => {
         // Call order details fucntion and check if the order is completed
         const orderDetails = await orderProcessingInstance.getOrderDetails(orderId, { from: user });
         assert.equal(orderDetails[4], true, "Order is not completed");
-        assert.equal(orderDetails[3], 200, "Order amount is not correct");
+        assert.equal(orderDetails[3], 1000, "Order amount is not correct");
 
         // Call the balanceOf function to check the balance of the user
         const remBalance = await fastCoinInstance.balanceOf(user);
-        assert.equal(remBalance, 19800, "Remaining Balance is not correct");
+        assert.equal(remBalance, 19000, "Remaining Balance is not correct");
 
         // Call the getLoyaltyPoints function to check the loyalty points of the user
         const loyaltyPoints = await rewardLoyaltyInstance.getLoyaltyPoints({ from: user });
-        assert.equal(loyaltyPoints.toNumber(), 0.15 * 200, "Loyalty points are not correct");
+        assert.equal(loyaltyPoints.toNumber(), 150, "Loyalty points are not correct");
     });
-});
 
+    it("User should be able to successfully redeem tokens and have correct left over points", async () => {
+        // Call the redeem tokens function
+        await rewardLoyaltyInstance.redeemPointsForTokens({ from: user });
+
+        // Call the balanceOf function to check the balance of the user
+        const remBalance = await fastCoinInstance.balanceOf(user);
+        assert.equal(remBalance, 19001, "Remaining Balance is not correct");
+
+        // Call getLoyaltyPoints function to check the loyalty points of the user
+        const loyaltyPoints = await rewardLoyaltyInstance.getLoyaltyPoints({ from: user });
+        assert.equal(loyaltyPoints.toNumber(), 50, "Loyalty points are not correct");
+    });
+
+
+});

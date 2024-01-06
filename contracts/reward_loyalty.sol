@@ -32,6 +32,11 @@ contract RewardLoyalty {
         _;
     }
 
+    // Get loyalty points for a user.
+    function getLoyaltyPoints() public view returns (uint256) {
+        return loyaltyPoints[msg.sender];
+    }
+
     // Function to update the addresses of integrated contracts, if needed.
     function setIntegratedContracts(
         address _menuManagementContractAddress,
@@ -66,7 +71,8 @@ contract RewardLoyalty {
     }
 
     // Function to redeem loyalty points for FastCoin tokens.
-    function redeemPointsForTokens(address user) public {
+    function redeemPointsForTokens() public {
+        address user = msg.sender;
         uint256 currentLoyaltyPoints = loyaltyPoints[user];
         require(
             currentLoyaltyPoints >= conversionRate,
