@@ -63,6 +63,11 @@ contract OrderProcessing {
         owner = msg.sender;
     }
 
+    // Function to get all orders of a user
+    function getAllOrders() external view returns (Order[] memory) {
+        return userOrders[msg.sender];
+    }
+
     // Function to update the addresses of integrated contracts, if needed.
     function setIntegratedContracts(
         address _menuManagementContractAddress,
