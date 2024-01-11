@@ -38,7 +38,9 @@ contract OrderProcessing {
         address indexed user,
         uint256[] items,
         uint256[] quantities,
-        uint256 totalAmount
+        uint256 totalAmount,
+        uint256 discountedAmount,
+        uint256 grossAmount
     );
 
     // Modifier to ensure the function is called by the integrated contracts only.
@@ -124,8 +126,12 @@ contract OrderProcessing {
     function placeOrder(
         uint256[] memory itemIds,
         uint256[] memory quantities
-    ) public returns (uint256, uint256) {
+    ) external {
         uint256 totalAmount = 0;
+        uint256 grossAmount = 0;
+        uint256 discountedAmount = 0;
+
+        // Iterate through the items in the order.
         for (uint256 i = 0; i < itemIds.length; i++) {
             // Check if the item is available in the menu.
             require(
@@ -134,10 +140,21 @@ contract OrderProcessing {
                 "Item not available in the required quantity."
             );
             // Calculate the total amount, considering any active promotions.
+
+            // Get gross price of the item from the menuMangement contract.
             uint256 itemPrice = menuManagementContract.getItemPrice(itemIds[i]);
+            // Get the discounted price of the item from the promotionsDiscounts contract.
             uint256 discountedPrice = promotionsDiscountsContract
                 .calculateDiscountedPrice(itemIds[i], itemPrice);
+
+            // Calculate the total amount for the item.
             totalAmount += discountedPrice * quantities[i];
+
+            // Calculate the gross amount for the item.
+            grossAmount += itemPrice * quantities[i];
+
+            // Calculate the discounted amount for the item.
+            discountedAmount += (itemPrice - discountedPrice) * quantities[i];
         }
 
         // Add the new order to the mapping of orders against user addresses.
@@ -156,10 +173,10 @@ contract OrderProcessing {
             msg.sender,
             itemIds,
             quantities,
-            totalAmount
+            totalAmount,
+            discountedAmount,
+            grossAmount
         );
-
-        return (orderCount, totalAmount);
     }
 
     // Function to validate an order before processing payment.
