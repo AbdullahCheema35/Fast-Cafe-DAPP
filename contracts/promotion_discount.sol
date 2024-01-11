@@ -6,12 +6,19 @@ contract PromotionDiscount {
         uint256 itemId; // ID of the menu item the promotion is for.
         string description;
         uint256 discountPercentage; // e.g., 10 for a 10% discount.
-        uint256 validTill; // Timestamp for when the promotion ends.
+        uint256 validTill; // Holds the block number till which the promotion is valid.
     }
+
+    // Array to store all of the promotions in the contract.
+    Promotion[] internal promotions;
 
     // Mapping to store promotions for each item
     mapping(uint256 => Promotion) public itemPromotions;
 
+    // Mapping to set staff addresses
+    mapping(address => bool) public staffAddresses;
+
+    // Admin address
     address public admin;
 
     constructor() {
@@ -20,6 +27,14 @@ contract PromotionDiscount {
 
     modifier onlyAdmin() {
         require(msg.sender == admin, "Only the admin can call this function.");
+        _;
+    }
+
+    modifier onlyStaff() {
+        require(
+            staffAddresses[msg.sender] == true,
+            "Only staff members can call this function."
+        );
         _;
     }
 
@@ -38,22 +53,34 @@ contract PromotionDiscount {
         string memory _description,
         uint256 _discountPercentage,
         uint256 _validTill
-    ) public onlyAdmin {
+    ) public onlyStaff {
         require(
-            _validTill > block.timestamp,
+            _validTill > block.number,
             "Promotion end time must be in the future."
         );
         require(
             _discountPercentage > 0 && _discountPercentage <= 100,
             "Invalid discount percentage."
         );
+        // Set the promotion for the item.
         itemPromotions[_itemId] = Promotion(
             _itemId,
             _description,
             _discountPercentage,
             _validTill
         );
+
+        // Add the promotion to the array of promotions.
+        promotions.push(
+            Promotion(_itemId, _description, _discountPercentage, _validTill)
+        );
+
         // Emit event or notify other contracts as needed.
+    }
+
+    // Function to add staff addresses
+    function addStaff(address _staffAddress) external onlyAdmin {
+        staffAddresses[_staffAddress] = true;
     }
 
     // Function to update an existing promotion for a specific item.
@@ -62,18 +89,14 @@ contract PromotionDiscount {
         string memory _description,
         uint256 _discountPercentage,
         uint256 _validTill
-    ) public onlyAdmin {
+    ) public onlyStaff {
         require(
-            _validTill > block.timestamp,
+            _validTill > block.number,
             "Promotion end time must be in the future."
         );
         require(
             _discountPercentage > 0 && _discountPercentage <= 100,
             "Invalid discount percentage."
-        );
-        require(
-            itemPromotions[_itemId].validTill > block.timestamp,
-            "No existing promotion for this item or the existing promotion has expired."
         );
         itemPromotions[_itemId] = Promotion(
             _itemId,
@@ -81,12 +104,16 @@ contract PromotionDiscount {
             _discountPercentage,
             _validTill
         );
-        // Emit event or notify other contracts as needed.
-    }
 
-    // Function to remove a promotion for a specific item.
-    function removePromotion(uint256 _itemId) public onlyAdmin {
-        delete itemPromotions[_itemId];
+        // Update the promotion in the promotions array.
+        for (uint256 i = 0; i < promotions.length; i++) {
+            if (promotions[i].itemId == _itemId) {
+                promotions[i].description = _description;
+                promotions[i].discountPercentage = _discountPercentage;
+                promotions[i].validTill = _validTill;
+                break;
+            }
+        }
         // Emit event or notify other contracts as needed.
     }
 
@@ -96,7 +123,7 @@ contract PromotionDiscount {
         uint256 itemPrice
     ) public view returns (uint256) {
         uint256 discountedPrice = itemPrice;
-        if (itemPromotions[_itemId].validTill > block.timestamp) {
+        if (itemPromotions[_itemId].validTill > block.number) {
             // Apply the promotion if it's still valid.
             discountedPrice =
                 itemPrice -
@@ -110,7 +137,7 @@ contract PromotionDiscount {
     function getPromotionDetails(
         uint256 _itemId
     ) public view returns (uint256, string memory, uint256, uint256) {
-        if (itemPromotions[_itemId].validTill > block.timestamp) {
+        if (itemPromotions[_itemId].validTill > block.number) {
             // Promotion exists for this item, return its details.
             return (
                 _itemId,
@@ -124,5 +151,13 @@ contract PromotionDiscount {
         }
     }
 
-    // Additional functions and logic as required by the project requirements...
+    // Get all the promotions in the contract
+    function getAllPromotions()
+        external
+        view
+        onlyStaff
+        returns (Promotion[] memory)
+    {
+        return promotions;
+    }
 }
