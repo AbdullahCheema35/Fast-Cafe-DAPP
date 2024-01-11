@@ -111,6 +111,12 @@ contract MenuManagement {
         uint256 availability
     ) public onlyStaff {
         require(itemId <= itemCount && itemId > 0, "Item does not exist.");
+
+        require(
+            menuItems[itemId].exists == true,
+            "Item has been removed. It cannot be updated."
+        );
+
         // Update the item in the mapping
         menuItems[itemId] = MenuItem(itemId, name, price, availability, true);
         // Update the item in the array
@@ -127,6 +133,12 @@ contract MenuManagement {
     // Function to remove an item from the menu.
     function removeItem(uint256 itemId) public onlyStaff {
         require(itemId <= itemCount && itemId > 0, "Item does not exist.");
+
+        require(
+            menuItems[itemId].exists == true,
+            "Item has been removed. It cannot be updated."
+        );
+
         // Remove the item from the mapping
         delete menuItems[itemId];
         // Remove the item from the array
