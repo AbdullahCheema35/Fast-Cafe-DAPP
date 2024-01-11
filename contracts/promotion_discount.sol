@@ -62,6 +62,13 @@ contract PromotionDiscount {
             _discountPercentage > 0 && _discountPercentage <= 100,
             "Invalid discount percentage."
         );
+
+        // Check that the promotion does not exist for the item.
+        require(
+            itemPromotions[_itemId].validTill == 0,
+            "Promotion already exists for this item."
+        );
+
         // Set the promotion for the item.
         itemPromotions[_itemId] = Promotion(
             _itemId,
@@ -103,6 +110,13 @@ contract PromotionDiscount {
             _discountPercentage > 0 && _discountPercentage <= 100,
             "Invalid discount percentage."
         );
+
+        // Check that the promotion exists for the item.
+        require(
+            itemPromotions[_itemId].validTill > 0,
+            "Promotion does not exist for this item."
+        );
+
         itemPromotions[_itemId] = Promotion(
             _itemId,
             _description,
@@ -116,6 +130,27 @@ contract PromotionDiscount {
                 promotions[i].description = _description;
                 promotions[i].discountPercentage = _discountPercentage;
                 promotions[i].validTill = _validTill;
+                break;
+            }
+        }
+        // Emit event or notify other contracts as needed.
+    }
+
+    // Function to update an existing promotion for a specific item.
+    function deletePromotion(uint256 _itemId) public onlyStaff {
+        // Check that the promotion exists for the item.
+        require(
+            itemPromotions[_itemId].validTill > 0,
+            "Promotion does not exist for this item."
+        );
+
+        // Delete the promotion for the item.
+        itemPromotions[_itemId].validTill = 0;
+
+        // Update the promotion in the promotions array.
+        for (uint256 i = 0; i < promotions.length; i++) {
+            if (promotions[i].itemId == _itemId) {
+                promotions[i].validTill = 0;
                 break;
             }
         }
