@@ -198,6 +198,27 @@ contract PromotionDiscount {
         onlyStaff
         returns (Promotion[] memory)
     {
-        return promotions;
+        uint256 count = 0;
+
+        // Count the number of items in the menu.
+        for (uint256 i = 0; i < promotions.length; i++) {
+            if (promotions[i].validTill > 0) {
+                count++;
+            }
+        }
+
+        // Create a new array with the correct size.
+        Promotion[] memory tempPromotions = new Promotion[](count);
+        uint256 index = 0;
+
+        // Add the items to the new array.
+        for (uint256 i = 0; i < promotions.length; i++) {
+            if (promotions[i].validTill > 0) {
+                tempPromotions[index] = promotions[i];
+                index++;
+            }
+        }
+
+        return tempPromotions;
     }
 }
