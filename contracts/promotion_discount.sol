@@ -83,6 +83,11 @@ contract PromotionDiscount {
         staffAddresses[_staffAddress] = true;
     }
 
+    // Function to remove staff addresses
+    function removeStaff(address _staffAddress) public onlyAdmin {
+        staffAddresses[_staffAddress] = false;
+    }
+
     // Function to update an existing promotion for a specific item.
     function updatePromotion(
         uint256 _itemId,

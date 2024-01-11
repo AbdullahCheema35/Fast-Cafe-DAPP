@@ -74,6 +74,10 @@ contract MenuManagement {
         staffAddresses[_staffAddress] = true;
     }
 
+    function removeStaff(address _staffAddress) public onlyAdmin {
+        staffAddresses[_staffAddress] = false;
+    }
+
     // Function to add a new item to the menu.
     function addItem(
         string memory name,
