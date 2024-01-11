@@ -7,10 +7,13 @@ contract RewardLoyalty {
     // ERC20 token address for loyalty points (e.g., FastCoin).
     mapping(address => uint256) public loyaltyPoints;
 
+    // Conversion rate for loyalty points to FastCoin tokens.
     uint256 public conversionRate = 100; // 100 points = 1 FastCoin, adjustable by admin.
     address public admin;
 
-    uint256 public purchaseFactor = 10; // Factor to determine loyalty points based on purchase amount.
+    // Percentage Factor to determine loyalty points based on purchase amount.
+    // Percentage Factor = 10 means 1 loyalty point for every 10 FastCoin tokens spent on purchases.
+    uint256 public purchaseFactor = 10;
     event LoyaltyPointsAdded(address indexed user, uint256 points);
 
     // Payment Contract
@@ -32,8 +35,13 @@ contract RewardLoyalty {
         _;
     }
 
+    // Function to get the current conversion rate
+    function getConversionRate() external view returns (uint256) {
+        return conversionRate;
+    }
+
     // Get loyalty points for a user.
-    function getLoyaltyPoints() public view returns (uint256) {
+    function getLoyaltyPoints() external view returns (uint256) {
         return loyaltyPoints[msg.sender];
     }
 
@@ -88,12 +96,5 @@ contract RewardLoyalty {
             currentLoyaltyPoints - pointsLeft,
             tokensToTransfer
         );
-    }
-
-    // Function to change the conversion rate for loyalty points.
-    function changeConversionRate(uint256 newRate) public onlyAdmin {
-        require(newRate > 0, "Conversion rate must be greater than zero.");
-        conversionRate = newRate;
-        emit ConversionRateChanged(newRate);
     }
 }
