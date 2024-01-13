@@ -14,6 +14,8 @@ contract OrderProcessing {
         uint256[] quantities;
         uint256 totalAmount;
         bool completed;
+        uint256 discountedAmount;
+        uint256 grossAmount;
     }
 
     mapping(address => Order[]) public userOrders;
@@ -102,7 +104,9 @@ contract OrderProcessing {
             uint256[] memory itemIds,
             uint256[] memory quantities,
             uint256 totalAmount,
-            bool completed
+            bool completed,
+            uint256 discountedAmount,
+            uint256 grossAmount
         )
     {
         Order[] memory ordersByUser = userOrders[msg.sender];
@@ -114,7 +118,9 @@ contract OrderProcessing {
                     ordersByUser[i].items,
                     ordersByUser[i].quantities,
                     ordersByUser[i].totalAmount,
-                    ordersByUser[i].completed
+                    ordersByUser[i].completed,
+                    ordersByUser[i].discountedAmount,
+                    ordersByUser[i].grossAmount
                 );
             }
         }
@@ -165,7 +171,9 @@ contract OrderProcessing {
             itemIds,
             quantities,
             totalAmount,
-            false
+            false,
+            discountedAmount,
+            grossAmount
         );
         userOrders[msg.sender].push(newOrder);
         emit OrderPlaced(
