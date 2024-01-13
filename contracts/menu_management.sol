@@ -10,7 +10,6 @@ contract MenuManagement {
         bool exists;
     }
 
-    mapping(uint256 => MenuItem) public menuItems;
     uint256 public itemCount;
     address public admin;
 
@@ -84,15 +83,10 @@ contract MenuManagement {
         uint256 price,
         uint256 availability
     ) public onlyStaff {
+        require(availability > 0, "Invalid availability.");
+        require(price > 0, "Invalid price.");
+
         itemCount++;
-        // Add new item in the mapping
-        menuItems[itemCount] = MenuItem(
-            itemCount,
-            name,
-            price,
-            availability,
-            true
-        );
 
         // Add new item in the array
         menuItems_array.push(
@@ -113,12 +107,10 @@ contract MenuManagement {
         require(itemId <= itemCount && itemId > 0, "Item does not exist.");
 
         require(
-            menuItems[itemId].exists == true,
+            menuItems_array[itemId - 1].exists == true,
             "Item has been removed. It cannot be updated."
         );
 
-        // Update the item in the mapping
-        menuItems[itemId] = MenuItem(itemId, name, price, availability, true);
         // Update the item in the array
         menuItems_array[itemId - 1] = MenuItem(
             itemId,
@@ -135,12 +127,10 @@ contract MenuManagement {
         require(itemId <= itemCount && itemId > 0, "Item does not exist.");
 
         require(
-            menuItems[itemId].exists == true,
+            menuItems_array[itemId - 1].exists == true,
             "Item has been removed. It cannot be updated."
         );
 
-        // Remove the item from the mapping
-        delete menuItems[itemId];
         // Remove the item from the array
         menuItems_array[itemId - 1].exists = false;
 
@@ -152,12 +142,12 @@ contract MenuManagement {
         uint256 itemId
     ) public view returns (uint256) {
         require(itemId <= itemCount && itemId > 0, "Item does not exist.");
-        return menuItems[itemId].availability;
+        return menuItems_array[itemId - 1].availability;
     }
 
     function getItemPrice(uint256 itemId) public view returns (uint256) {
         require(itemId <= itemCount && itemId > 0, "Item does not exist.");
-        return menuItems[itemId].price;
+        return menuItems_array[itemId - 1].price;
     }
 
     // Function to get item details (itemId, name, price, availability).
@@ -165,7 +155,7 @@ contract MenuManagement {
         uint256 itemId
     ) public view returns (uint256, string memory, uint256, uint256) {
         require(itemId <= itemCount && itemId > 0, "Item does not exist.");
-        MenuItem memory item = menuItems[itemId];
+        MenuItem memory item = menuItems_array[itemId - 1];
         return (item.itemId, item.name, item.price, item.availability);
     }
 
@@ -176,10 +166,10 @@ contract MenuManagement {
     ) public onlyIntegratedContracts {
         require(itemId <= itemCount && itemId > 0, "Item does not exist.");
         require(
-            menuItems[itemId].availability >= unitsConsumed,
+            menuItems_array[itemId - 1].availability >= unitsConsumed,
             "Cannot update item availability. Not enough units available to subtract."
         );
-        menuItems[itemId].availability -= unitsConsumed;
+        menuItems_array[itemId - 1].availability -= unitsConsumed;
         // Emit event or notify other contracts as needed.
     }
 
