@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes} from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Menu from './pages/Menu';
@@ -8,8 +8,8 @@ import Payment from './pages/Payment';
 import OrderSummary from './pages/OrderSummary';
 import Rewards from './pages/Rewards';
 import AdminMenu from './staff/adminMenu';
-import PromotionAndDiscounts from './staff/promotionAndDiscounts';
 import AdminHome from './staff/adminHome';
+import PromotionDiscount from './staff/promoDisc';
 
 
 function App() {
@@ -29,9 +29,9 @@ function App() {
         <Route path="/rewards" element={<Rewards accountIndex={accountIndex} />} />
 
         {/* routes from Staff Pages*/}
-        <Route path="/staffHome" element={<AdminHome />} />
-        <Route path="/adminMenu" element={<AdminMenu  staffIndex={staffIndex}/>} />
-        <Route path="/promotionAndDiscounts" element={<PromotionAndDiscounts staffIndex={staffIndex} />} />
+        <Route path="/adminHome" element={<AdminHome />} />
+        <Route path="/adminMenu" element={<AdminMenu staffIndex={staffIndex} />} />
+        <Route path="/promotionDiscount" element={<PromotionDiscount staffIndex={staffIndex} />} />
         {/* Add more routes as needed */}
       </Routes>
     </Router>

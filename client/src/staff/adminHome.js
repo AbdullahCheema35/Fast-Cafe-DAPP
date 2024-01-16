@@ -30,7 +30,7 @@ function AdminHome() {
       <h1>Welcome to FAST Cafeteria - Staff Panel</h1>
       <nav className="navigation">
         <Link to="/adminMenu" className="nav-link">Add Menu</Link>
-        <Link to="/promotionAndDiscounts" className="nav-link">Add Promotion & Discount</Link>
+        <Link to="/PromotionDiscount" className="nav-link">Add Promotion & Discount</Link>
       </nav>
       <button onClick={changeAccount} className="change-account-button">Change Account</button>
       <p>Current Account: {accounts[staffIndex].toString()}</p>
