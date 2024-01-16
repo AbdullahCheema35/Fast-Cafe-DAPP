@@ -1,0 +1,4 @@
+# Ignore all files inside the contracts folder except build/contracts
+build/contracts/*
+!build/contracts/
+node_modules/
